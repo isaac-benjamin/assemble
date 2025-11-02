@@ -3,7 +3,7 @@ import Matching from "./matching";
 
 export default function Home() {
   return (
-    <div className="h-full">
+    <div className="h-full flex flex-col">
       <Header/>
       <Matching/>
     </div>

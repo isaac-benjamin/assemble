@@ -1,5 +1,6 @@
 
 import os
+from flask_cors import CORS
 from instructor import patch
 from openai import OpenAI
 from flask import Flask, Request, json, jsonify, request
@@ -7,6 +8,8 @@ from flask import Flask, Request, json, jsonify, request
 from models import *
 
 app = Flask(__name__)
+
+CORS(app)
 
 client=OpenAI(base_url="https://openrouter.ai/api/v1",api_key=os.getenv('OPENROUTER_API_KEY'))
 modelCode = "google/gemini-2.5-flash"
@@ -84,8 +87,8 @@ def get_goals_and_tactics():
 
     tacticPrompt = f"""You are creating a matching game to match goals to relevant tactics. 
                     Given the goals just created, make 3-4 tactics that can be used to advance these goals.
-                    The goals are: {newline.join(f"* {x}" for x in goals)} \n Each goal should have at least 1 tactic
-                    that is a strong pair. The user lives in {countyData}, {stateData}. Please respond in json format."""
+                    The goals are: {goals} \n Each goal should have at least 1 tactic
+                    that is a strong pair. The user lives in {countyData}, {stateData}. Return a list of tactics. Please respond in json format."""
 
     print(tacticPrompt)
 
@@ -103,7 +106,7 @@ def get_goals_and_tactics():
             "json_schema": { 
                 "name":"TacticSchema",
                 "strict":True,
-                "schema":tacticResponse.model_json_schema()
+                "schema": TacticResponse.model_json_schema()
                 }
         }
     )

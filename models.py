@@ -9,9 +9,9 @@ def getSysPrompt():
 
 class Goal(BaseModel):
     id :int =Field(description="unique numerical identifier")
-    title:str = Field(description="Name of the change the user would like to see in their community. This is a sentence fragment")
-    description : str = Field(description="Brief description of the issue, who it affects, why its important . Maximum 3 sentences.")
-    relation : str = Field(description="Explain how this connects to the user's community. Maximum 3 sentences")
+    name:str = Field(description="Name of the change the user would like to see in their community. This is a sentence fragment, no more than 4 words")
+    description : str = Field(description="Brief description of the issue, who it affects, why its important . Maximum 3 concise sentences.")
+    relation : str = Field(description="Explain how this connects to the user's community. Maximum 3 concise sentences")
 
 
 class GoalResponse(BaseModel):
@@ -23,7 +23,7 @@ class Tactic(BaseModel):
     name:str = Field(description="Name of method of activism or organization")
     description : str = Field(description="1-2 sentences explaining what actions this tactic entails")
 
-class TaskResponse(BaseModel):
+class TacticResponse(BaseModel):
     goals: list[Tactic] = Field(description="List of the requested tactics", max_length=MAX_GOALS-1)
 
 class Match(BaseModel):
