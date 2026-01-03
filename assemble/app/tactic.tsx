@@ -1,8 +1,8 @@
 import Matchable from "./matchable";
-import { TacticData } from "./sharedTypes";
+import { TacticProps } from "./sharedTypes";
 
-export default function Goal(props:TacticData){
+export default function Goal(props:TacticProps){
     return(
-        <Matchable id={props.id} name={props.name} isGoal={false}/>
+        <Matchable id={props.dragData.id} name={props.tacticData.name} isGoal={false} coords={props.dragData.coords}/>
     );
 }

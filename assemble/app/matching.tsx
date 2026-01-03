@@ -1,44 +1,63 @@
 'use client'
 
 import { DndContext, DragEndEvent, DragOverEvent } from "@dnd-kit/core";
+import {restrictToWindowEdges} from '@dnd-kit/modifiers';
 import Goal from "./goal";
 import Tactic from "./tactic";
 import { useEffect, useState } from "react";
-import { GoalData, MatchData, TacticData } from "./sharedTypes";
+import { GoalProps, MatchData, TacticProps, GoalData, TacticData } from "./sharedTypes";
 import { getGoalsAndTasks } from "./serverCalls";
 import Match from "./match";
 
 export default function Matching(){
 
-    const [goals,setGoals] = useState<GoalData[]>([]);
-    const [tactics,setTactics] = useState<TacticData[]>([]);
+    const [goals,setGoals] = useState<GoalProps[]>([]);
+    const [tactics,setTactics] = useState<TacticProps[]>([]);
     const [matches,setMatches] = useState<MatchData[]>([]);
 
     useEffect(()=>{
         getGoalsAndTasks().then((data)=>{
             const tacticData: TacticData[] = JSON.parse(data.tactics);
-            console.log("use Effect log:",data, tacticData);
             const goalData :GoalData[] = JSON.parse(data.goals);
             const goalCount = goalData.length;
-            tacticData.forEach(tac => {
-                tac.id+=goalCount-2;
+            const tacProps :TacticProps[] = [];
+            const goalProps: GoalProps[]= [];
+            
+            goalData.forEach(goal => {
+                const props :GoalProps = {
+                    'goalData':goal,
+                    'dragData':{'id':goal.listKey, 'coords': {x:0, y:0}}
+                };
+                goalProps.push(props);
             });
-            setTactics(tacticData);
-            setGoals(goalData);
+
+            tacticData.forEach(tac => {
+                const props :TacticProps = {
+                    'tacticData':tac,
+                    'dragData':{'id':tac.listKey+goalCount, coords:{x:0, y:0}}
+                };
+                tacProps.push(props);
+            });
+            
+            setTactics(tacProps);
+            setGoals(goalProps);
+            
+            // console.log("Goals:",goalProps, "Tactics:",tacProps)
+            console.log("data pulled");
         })
     },[]);
 
     return(
         <div className="grow flex flex-col">
-            <DndContext onDragEnd={handleDragEnd}> {/*All three columns (one draggable area)*/}
+            <DndContext onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}> {/*All three columns (one draggable area)*/}
                 <div className="flex border-collapse grow">
 
                     {/* Goal column */}
                     <div className="border-r border-accentColor p-2 h-full flex flex-col gap-y-2 w-1/4">
                         {
-                            goals.map((goal,index)=>{
+                            goals.map((goal)=>{
                                 return(
-                                    <Goal id={goal.id} key={index} name={goal.name}/>
+                                    <Goal key={goal.goalData.listKey} goalData={goal.goalData} dragData={goal.dragData}/>
                                 );
                             })
                         }
@@ -52,9 +71,9 @@ export default function Matching(){
                     {/* tactics column */}
                     <div className="border-l border-accentColor p-2 h-full flex flex-col gap-y-2 w-1/4">
                         {
-                            tactics.map((tactic,index)=>{
+                            tactics.map((tactic)=>{
                                 return(
-                                    <Tactic id={tactic.id} key={index} name={tactic.name} />
+                                    <Tactic key={tactic.tacticData.listKey} tacticData={tactic.tacticData} dragData={tactic.dragData} />
                                 );
                             })
                         }
@@ -65,34 +84,37 @@ export default function Matching(){
     );
 
     function handleDragEnd(event:DragEndEvent){
-        const {active, over} = event;
-        const activeData = active.data.current;
-        const overData = over?.data.current;
-        const overId = over?.id as number;
-        const activeId = active.id as number;
+        const delta = event.delta;
+        const activeId = event.active.id as number;
+        const isGoal = event.active.data.current?.isGoal;
 
-        console.log(over,overData)
-
-        //Check if they are of different types
-        if( over && active && 
-        ((activeId>goals.length && overId <= goals.length)
-        || (overId>goals.length && activeId <= goals.length)) ){
-            if(over.id as number > goals.length){
-                makeMatch(activeId,overId)
-            }else{
-                makeMatch(overId,activeId)
-            }
+        if(isGoal==null){
+            console.log("UH OH - isGoal = null");
+        }else if(isGoal==false){
+            console.log("Tactic Dragged")
+        }else{
+            console.log("Goal dragged")
+            const nextGoals = goals.map((c)=>{
+                if(c.dragData.id==activeId){
+                    return({
+                        goalData:c.goalData,
+                        dragData: {
+                            id:c.dragData.id,
+                            coords: delta
+                        }
+                    });
+                }else{
+                    return c;
+                }
+            }) 
+            setGoals(nextGoals);
         }
+    
+
     }
 
     function makeMatch(goalId:number, tacticId:number){
-        console.log("attempt")
-        const goal = goals.splice(goalId-1);
-        const tactic = tactics.splice( tacticId - (tactics.at(0) as TacticData).id );
-        setGoals(goals);
-        setTactics(tactics);
-        const newMatches = matches.concat({goal:goal[0], tactic:tactic[0], matchScore:0,explanation:'',sources:[]});
-        setMatches(newMatches);
+
     }
 
 }

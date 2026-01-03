@@ -1,10 +1,12 @@
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useCombinedRefs, CSS } from "@dnd-kit/utilities";
+import { log } from "console";
+import { useEffect, useState } from "react";
+import { DraggingData } from "./sharedTypes";
 
-interface propType{
-    id: number;
-    name:string;
-    isGoal:boolean;
+interface propType extends DraggingData{
+    name: string
+    isGoal: boolean
 };
 
 export default function Matchable(props :propType){
@@ -13,8 +15,9 @@ export default function Matchable(props :propType){
     const combinedRef = useCombinedRefs(setNodeRef, draggable.setNodeRef);
     const style = {transform: CSS.Translate.toString(draggable.transform)};
 
+
     function getStyles(){
-        let styles = "";
+        let styles = ` `;
 
         //Goal check
         if(props.isGoal){
@@ -24,11 +27,12 @@ export default function Matchable(props :propType){
         }
 
         //Dragged check
-        if(draggable.active){
+        if(draggable.isDragging){
             styles+="cursor-grabbing ";
         }else{
             styles+="cursor-grab";
         }
+
 
         return styles;
     }
