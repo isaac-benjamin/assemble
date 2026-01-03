@@ -3,6 +3,7 @@
 :root {
   --background: #232d64;
   --primaryColor: #2d2d8a;
+  --tacticColor: #4a1f8f;
   --accentColor: #4f7092;
   --textColor: #c7c4c4;
   --foreground: #171717;
@@ -14,6 +15,8 @@
   --color-accentColor: var(--accentColor);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-tacticColor: var(--tacticColor);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -24,10 +27,9 @@ h1 {
   padding: 0.5rem;
 }
 
-/* h2{
-  padding: 0.5rem;
-} */
-
+@layer components{
+  
+}
 
 body {
   background: var(--background);

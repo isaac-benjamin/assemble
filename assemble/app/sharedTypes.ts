@@ -1,20 +1,23 @@
-export interface GoalData{
-    id:number;
-    name:string;
-    description:string;
+
+interface MatchableData{
+    id: number;
+    name: string;
+    description?: string;
 };
 
-export interface TacticData{
-    id:number;
-    name:string;
-    description:string;
+export interface GoalData extends MatchableData{
+    relation?:string;
+};
+
+export interface TacticData extends MatchableData{
+    bestMatch?: number;
 };
 
 export interface MatchData{
     goal:GoalData;
     tactic:TacticData;
-    matchScore:number;
-    explanation: string;
-    sources:string[];
+    matchScore?:number;
+    explanation?: string;
+    sources?:string[];
 }
 

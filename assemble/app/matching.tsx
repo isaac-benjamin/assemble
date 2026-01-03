@@ -16,9 +16,8 @@ export default function Matching(){
 
     useEffect(()=>{
         getGoalsAndTasks().then((data)=>{
-            console.log(data);
             const tacticData: TacticData[] = JSON.parse(data.tactics);
-            console.log(tacticData);
+            console.log("use Effect log:",data, tacticData);
             const goalData :GoalData[] = JSON.parse(data.goals);
             const goalCount = goalData.length;
             tacticData.forEach(tac => {
@@ -31,33 +30,31 @@ export default function Matching(){
 
     return(
         <div className="grow flex flex-col">
-            <DndContext onDragEnd={handleDragEnd}>
+            <DndContext onDragEnd={handleDragEnd}> {/*All three columns (one draggable area)*/}
                 <div className="flex border-collapse grow">
-                    <div className="border-2 p-2 h-full flex flex-col gap-y-2 w-1/4">
+
+                    {/* Goal column */}
+                    <div className="border-r border-accentColor p-2 h-full flex flex-col gap-y-2 w-1/4">
                         {
                             goals.map((goal,index)=>{
                                 return(
-                                    <Goal id={goal.id} key={index} name={goal.name} description={goal.description} />
+                                    <Goal id={goal.id} key={index} name={goal.name}/>
                                 );
                             })
                         }
                     </div>
-                    <div className="flex flex-col-reverse border-2 flex-1 h-full">
-                        <div className="h-1/4 border-4 border-accentColor border-collapse">
-                            {
-                                matches.map((match,index)=>{
-                                    return(
-                                        <Match key={index} goal={match.goal} tactic={match.tactic} matchScore={match.matchScore} explanation={match.explanation} sources={match.sources}/>
-                                    );
-                                })
-                            }
-                        </div>
+
+                    {/* Middle column */}
+                    <div className="flex-col-reverse flex-1 h-full">
+                        
                     </div>
-                    <div className="border-2 p-2 h-full flex flex-col gap-y-2 w-1/4">
+                    
+                    {/* tactics column */}
+                    <div className="border-l border-accentColor p-2 h-full flex flex-col gap-y-2 w-1/4">
                         {
                             tactics.map((tactic,index)=>{
                                 return(
-                                    <Goal id={tactic.id} key={index} name={tactic.name} description={tactic.description}/>
+                                    <Tactic id={tactic.id} key={index} name={tactic.name} />
                                 );
                             })
                         }
