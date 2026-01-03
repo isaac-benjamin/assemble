@@ -3,6 +3,7 @@ import { useCombinedRefs, CSS } from "@dnd-kit/utilities";
 import { log } from "console";
 import { useEffect, useState } from "react";
 import { DraggingData } from "./sharedTypes";
+import { isDragging } from "motion";
 
 interface propType extends DraggingData{
     name: string
@@ -15,9 +16,8 @@ export default function Matchable(props :propType){
     const combinedRef = useCombinedRefs(setNodeRef, draggable.setNodeRef);
     const style = {transform: CSS.Translate.toString(draggable.transform)};
 
-
     function getStyles(){
-        let styles = ` `;
+        let styles = `relative `;
 
         //Goal check
         if(props.isGoal){
@@ -37,10 +37,9 @@ export default function Matchable(props :propType){
         return styles;
     }
 
-    //On Drag - Disable mapped rendering in matching component
     return(
-        <div className={getStyles()+" p-4 flex justify-center font-bold"}
-         ref = {combinedRef} style={style} {...draggable.attributes} {...draggable.listeners}>
+        <div className={getStyles()+" p-4 flex justify-center font-bold text-center"}
+         ref = {combinedRef} style={{...style,top:`${props.coords.y}px`,left:`${props.coords.x}px`}} {...draggable.attributes} {...draggable.listeners}>
             {props.name}
         </div>
     );

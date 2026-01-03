@@ -1,8 +1,11 @@
 import { Coordinates } from "@dnd-kit/utilities";
 
-interface DraggingData{
+
+//VERY COUNTER-INTUITIVE - this is the props for the matchable.tsx component
+export interface DraggingData{
     id: number; //Unique number across all draggables and droppables
     coords: Coordinates
+    inMiddle : boolean
 }
 
 interface MatchableData{

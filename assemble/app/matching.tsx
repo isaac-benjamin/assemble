@@ -1,6 +1,6 @@
 'use client'
 
-import { DndContext, DragEndEvent, DragOverEvent } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverEvent, useDroppable } from "@dnd-kit/core";
 import {restrictToWindowEdges} from '@dnd-kit/modifiers';
 import Goal from "./goal";
 import Tactic from "./tactic";
@@ -14,6 +14,7 @@ export default function Matching(){
     const [goals,setGoals] = useState<GoalProps[]>([]);
     const [tactics,setTactics] = useState<TacticProps[]>([]);
     const [matches,setMatches] = useState<MatchData[]>([]);
+    const {setNodeRef} = useDroppable({id:-1});
 
     useEffect(()=>{
         getGoalsAndTasks().then((data)=>{
@@ -26,7 +27,7 @@ export default function Matching(){
             goalData.forEach(goal => {
                 const props :GoalProps = {
                     'goalData':goal,
-                    'dragData':{'id':goal.listKey, 'coords': {x:0, y:0}}
+                    'dragData':{'id':goal.listKey, 'coords': {x:0, y:0}, inMiddle:false}
                 };
                 goalProps.push(props);
             });
@@ -34,7 +35,7 @@ export default function Matching(){
             tacticData.forEach(tac => {
                 const props :TacticProps = {
                     'tacticData':tac,
-                    'dragData':{'id':tac.listKey+goalCount, coords:{x:0, y:0}}
+                    'dragData':{'id':tac.listKey+goalCount, coords:{x:0, y:0}, inMiddle:false}
                 };
                 tacProps.push(props);
             });
@@ -64,7 +65,7 @@ export default function Matching(){
                     </div>
 
                     {/* Middle column */}
-                    <div className="flex-col-reverse flex-1 h-full">
+                    <div className="flex-col-reverse flex-1 h-full" ref={setNodeRef}>
                         
                     </div>
                     
@@ -84,9 +85,12 @@ export default function Matching(){
     );
 
     function handleDragEnd(event:DragEndEvent){
+        const over = event.over
         const delta = event.delta;
         const activeId = event.active.id as number;
         const isGoal = event.active.data.current?.isGoal;
+
+
 
         if(isGoal==null){
             console.log("UH OH - isGoal = null");
@@ -99,8 +103,11 @@ export default function Matching(){
                     return({
                         goalData:c.goalData,
                         dragData: {
-                            id:c.dragData.id,
-                            coords: delta
+                            ...c.dragData,
+                            coords: {
+                                x:c.dragData.coords.x+ delta.x,
+                                y:c.dragData.coords.y+delta.y
+                            }
                         }
                     });
                 }else{
