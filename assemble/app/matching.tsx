@@ -1,18 +1,21 @@
 'use client'
 
-import { DndContext, DragEndEvent, DragOverEvent, useDroppable } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, useDroppable, pointerWithin, rectIntersection, Active, ClientRect, DroppableContainer } from "@dnd-kit/core";
 import {restrictToWindowEdges} from '@dnd-kit/modifiers';
 import Goal from "./goal";
 import Tactic from "./tactic";
+import SortStartColumn from "./sortStartColumn";
 import { useEffect, useState } from "react";
-import { GoalProps, MatchData, TacticProps, GoalData, TacticData } from "./sharedTypes";
+import { MatchData, GoalData, TacticData, MatchableProps } from "./sharedTypes";
 import { getGoalsAndTasks } from "./serverCalls";
 import Match from "./match";
+import { RectMap } from "@dnd-kit/core/dist/store";
+import { Coordinates } from "@dnd-kit/utilities";
 
 export default function Matching(){
 
-    const [goals,setGoals] = useState<GoalProps[]>([]);
-    const [tactics,setTactics] = useState<TacticProps[]>([]);
+    const [goals,setGoals] = useState<MatchableProps[]>([]);
+    const [tactics,setTactics] = useState<MatchableProps[]>([]);
     const [matches,setMatches] = useState<MatchData[]>([]);
     const {setNodeRef} = useDroppable({id:-1});
 
@@ -21,20 +24,20 @@ export default function Matching(){
             const tacticData: TacticData[] = JSON.parse(data.tactics);
             const goalData :GoalData[] = JSON.parse(data.goals);
             const goalCount = goalData.length;
-            const tacProps :TacticProps[] = [];
-            const goalProps: GoalProps[]= [];
+            const tacProps :MatchableProps[] = [];
+            const goalProps: MatchableProps[]= [];
             
             goalData.forEach(goal => {
-                const props :GoalProps = {
-                    'goalData':goal,
+                const props :MatchableProps = {
+                    'unitData':goal,
                     'dragData':{'id':goal.listKey, 'coords': {x:0, y:0}, inMiddle:false}
                 };
                 goalProps.push(props);
             });
 
             tacticData.forEach(tac => {
-                const props :TacticProps = {
-                    'tacticData':tac,
+                const props :MatchableProps = {
+                    'unitData':tac,
                     'dragData':{'id':tac.listKey+goalCount, coords:{x:0, y:0}, inMiddle:false}
                 };
                 tacProps.push(props);
@@ -50,58 +53,62 @@ export default function Matching(){
 
     return(
         <div className="grow flex flex-col">
-            <DndContext onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}> {/*All three columns (one draggable area)*/}
+            <DndContext onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]} collisionDetection={customCollisionDetect}> {/*All three columns (one draggable area)*/}
                 <div className="flex border-collapse grow">
 
                     {/* Goal column */}
-                    <div className="border-r border-accentColor p-2 h-full flex flex-col gap-y-2 w-1/4">
+                    <SortStartColumn name="Goals" leftSide={true}>
                         {
                             goals.map((goal)=>{
                                 return(
-                                    <Goal key={goal.goalData.listKey} goalData={goal.goalData} dragData={goal.dragData}/>
+                                    <Goal key={goal.unitData.listKey} goalData={goal.unitData} dragData={goal.dragData}/>
                                 );
                             })
                         }
-                    </div>
+                    </SortStartColumn>
+                    
 
                     {/* Middle column */}
                     <div className="flex-col-reverse flex-1 h-full" ref={setNodeRef}>
-                        
+                        {/* Why doesn't this count as droppable??? */}
                     </div>
                     
                     {/* tactics column */}
-                    <div className="border-l border-accentColor p-2 h-full flex flex-col gap-y-2 w-1/4">
+                    <SortStartColumn name={'Tactics'} leftSide={false}>
                         {
                             tactics.map((tactic)=>{
                                 return(
-                                    <Tactic key={tactic.tacticData.listKey} tacticData={tactic.tacticData} dragData={tactic.dragData} />
+                                    <Tactic key={tactic.unitData.listKey} tacticData={tactic.unitData} dragData={tactic.dragData} />
                                 );
                             })
                         }
-                    </div>
+                    </SortStartColumn>
                 </div>
             </DndContext>
         </div>
     );
 
     function handleDragEnd(event:DragEndEvent){
-        const over = event.over
+        const collisions = event.collisions;
         const delta = event.delta;
         const activeId = event.active.id as number;
         const isGoal = event.active.data.current?.isGoal;
+
+        console.log("Collisions:", collisions,"\n Over:", event.over);
 
 
 
         if(isGoal==null){
             console.log("UH OH - isGoal = null");
-        }else if(isGoal==false){
-            console.log("Tactic Dragged")
         }else{
-            console.log("Goal dragged")
-            const nextGoals = goals.map((c)=>{
+            console.log("Unit dragged")
+
+            const currentList = isGoal?goals:tactics;
+
+            const nextList = currentList.map((c)=>{
                 if(c.dragData.id==activeId){
                     return({
-                        goalData:c.goalData,
+                        unitData:c.unitData,
                         dragData: {
                             ...c.dragData,
                             coords: {
@@ -113,8 +120,9 @@ export default function Matching(){
                 }else{
                     return c;
                 }
-            }) 
-            setGoals(nextGoals);
+            });
+            const set = isGoal?setGoals:setTactics;
+            set(nextList);
         }
     
 
@@ -123,5 +131,18 @@ export default function Matching(){
     function makeMatch(goalId:number, tacticId:number){
 
     }
+
+    function customCollisionDetect(args: { active: Active; collisionRect: ClientRect; droppableRects: RectMap; droppableContainers: DroppableContainer[]; pointerCoordinates: Coordinates | null; }) {
+        // First, let's see if there are any collisions with the pointer
+        const pointerCollisions = pointerWithin(args);
+        
+        // Collision detection algorithms return an array of collisions
+        if (pointerCollisions.length > 0) {
+            return pointerCollisions;
+        }
+        
+        // If there are no collisions with the pointer, return rectangle intersections
+        return rectIntersection(args);
+    };
 
 }

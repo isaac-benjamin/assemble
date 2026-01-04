@@ -27,6 +27,13 @@ h1 {
   padding: 0.5rem;
 }
 
+@layer base{
+  h2{
+    font: bold 2em Tahoma, sans-serif;
+    text-align: center;
+  }
+}
+
 @layer components{
   
 }

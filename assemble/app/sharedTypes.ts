@@ -1,5 +1,14 @@
 import { Coordinates } from "@dnd-kit/utilities";
 
+/* 
+    dragging - information only related to how the component is dragged across the screen
+    Matchable - Goal or Tactic
+    Match - A paring of both one goal and one tactic
+
+    _____Data - front end data: information about the subject that must be displayed to user
+    Props - combination of some type of frontend data AND dragging data
+*/
+
 
 //VERY COUNTER-INTUITIVE - this is the props for the matchable.tsx component
 export interface DraggingData{
@@ -14,23 +23,18 @@ interface MatchableData{
     description?: string;
 };
 
+export interface MatchableProps{
+    unitData: MatchableData //Data specific to whatever type of matchable is being used
+    dragData: DraggingData;
+}
+
 export interface GoalData extends MatchableData{
     relation?:string;
 };
 
-export interface GoalProps{
-    goalData: GoalData;
-    dragData: DraggingData;
-}
-
 export interface TacticData extends MatchableData{
     bestMatch?: number;
 };
-
-export interface TacticProps{
-    tacticData:TacticData;
-    dragData: DraggingData;
-}
 
 export interface MatchData{
     goal:GoalData;
@@ -39,4 +43,3 @@ export interface MatchData{
     explanation?: string;
     sources?:string[];
 }
-

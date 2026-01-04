@@ -11,8 +11,10 @@ interface propType extends DraggingData{
 };
 
 export default function Matchable(props :propType){
-    const {setNodeRef} = useDroppable({id: props.id, data: {isGoal:props.isGoal}});
     const draggable = useDraggable({id: props.id, data : {isGoal:props.isGoal}});
+    const {setNodeRef} = useDroppable({id: props.id,
+                data: {isGoal:props.isGoal},
+                disabled: draggable.isDragging});
     const combinedRef = useCombinedRefs(setNodeRef, draggable.setNodeRef);
     const style = {transform: CSS.Translate.toString(draggable.transform)};
 
