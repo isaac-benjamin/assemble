@@ -5,15 +5,17 @@ import { useEffect, useState } from "react";
 import { DraggingData } from "../helperTs/sharedTypes";
 
 interface propType extends DraggingData{
-    name: string
-    isGoal: boolean
+    name: string,
+    isGoal: boolean,
+    matched ?: boolean
 };
 
 export default function Matchable(props :propType){
     const draggable = useDraggable({id: props.id, data : {isGoal:props.isGoal}});
     const {setNodeRef} = useDroppable({id: props.id,
                 data: {isGoal:props.isGoal},
-                disabled: draggable.isDragging});
+                disabled: (draggable.isDragging || props.matched) 
+            });
     const combinedRef = useCombinedRefs(setNodeRef, draggable.setNodeRef);
     const style = {transform: CSS.Translate.toString(draggable.transform)};
 

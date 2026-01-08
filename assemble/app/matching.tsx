@@ -96,6 +96,11 @@ export default function Matching(){
         const isGoal = event.active.data.current?.isGoal;
         console.log("Collisions:", collisions,"\n Over:", event.over);
 
+        /* 3 possible actions:
+            1) 
+            2)
+            3)
+        */
 
 
         if(isGoal==null){
@@ -133,11 +138,13 @@ export default function Matching(){
     }
 
     function customCollisionDetect(args: { active: Active; collisionRect: ClientRect; droppableRects: RectMap; droppableContainers: DroppableContainer[]; pointerCoordinates: Coordinates | null; }) {
-        // First, let's see if there are any collisions with the pointer
+        // Check for pointer collisions
         const pointerCollisions = pointerWithin(args);
         
-        // Collision detection algorithms return an array of collisions
-        if (pointerCollisions.length > 0) {
+        // If pointer collisions finds any collisions return the result UNLESS it only finds the middleColumn
+        if(pointerCollisions.length > 0 &&
+            !(pointerCollisions.length==1 && pointerCollisions[0].id==-1)){
+
             return pointerCollisions;
         }
         
