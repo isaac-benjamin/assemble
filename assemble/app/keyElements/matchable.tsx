@@ -2,8 +2,7 @@ import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useCombinedRefs, CSS } from "@dnd-kit/utilities";
 import { log } from "console";
 import { useEffect, useState } from "react";
-import { DraggingData } from "./sharedTypes";
-import { isDragging } from "motion";
+import { DraggingData } from "../helperTs/sharedTypes";
 
 interface propType extends DraggingData{
     name: string

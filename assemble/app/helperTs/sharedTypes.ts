@@ -14,7 +14,7 @@ import { Coordinates } from "@dnd-kit/utilities";
 export interface DraggingData{
     id: number; //Unique number across all draggables and droppables
     coords: Coordinates
-    inMiddle : boolean
+    inMiddle ?: boolean
 }
 
 interface MatchableData{
@@ -36,10 +36,9 @@ export interface TacticData extends MatchableData{
     bestMatch?: number;
 };
 
-export interface MatchData{
+export interface MatchData extends MatchableData{
     goal:GoalData;
     tactic:TacticData;
     matchScore?:number;
-    explanation?: string;
     sources?:string[];
 }

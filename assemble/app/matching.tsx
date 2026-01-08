@@ -1,23 +1,24 @@
 'use client'
 
-import { DndContext, DragEndEvent, useDroppable, pointerWithin, rectIntersection, Active, ClientRect, DroppableContainer } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, pointerWithin, rectIntersection, Active, ClientRect, DroppableContainer } from "@dnd-kit/core";
 import {restrictToWindowEdges} from '@dnd-kit/modifiers';
-import Goal from "./goal";
-import Tactic from "./tactic";
-import SortStartColumn from "./sortStartColumn";
 import { useEffect, useState } from "react";
-import { MatchData, GoalData, TacticData, MatchableProps } from "./sharedTypes";
-import { getGoalsAndTasks } from "./serverCalls";
-import Match from "./match";
 import { RectMap } from "@dnd-kit/core/dist/store";
 import { Coordinates } from "@dnd-kit/utilities";
+
+import MatchArea from "./MatchArea";
+import Goal from "./keyElements/goal";
+import Tactic from "./keyElements/tactic"
+import SortStartColumn from "./sortStartColumn";
+
+import { MatchData, GoalData, TacticData, MatchableProps } from "./helperTs/sharedTypes";
+import { getGoalsAndTasks } from "./helperTs/serverCalls";
 
 export default function Matching(){
 
     const [goals,setGoals] = useState<MatchableProps[]>([]);
     const [tactics,setTactics] = useState<MatchableProps[]>([]);
     const [matches,setMatches] = useState<MatchData[]>([]);
-    const {setNodeRef} = useDroppable({id:-1});
 
     useEffect(()=>{
         getGoalsAndTasks().then((data)=>{
@@ -61,24 +62,24 @@ export default function Matching(){
                         {
                             goals.map((goal)=>{
                                 return(
-                                    <Goal key={goal.unitData.listKey} goalData={goal.unitData} dragData={goal.dragData}/>
+                                    <Goal key={goal.unitData.listKey} unitData={goal.unitData} dragData={goal.dragData}/>
                                 );
                             })
                         }
-                    </SortStartColumn>
+                    </SortStartColumn> 
                     
 
                     {/* Middle column */}
-                    <div className="flex-col-reverse flex-1 h-full" ref={setNodeRef}>
-                        {/* Why doesn't this count as droppable??? */}
-                    </div>
+                    <MatchArea>
+                        
+                    </MatchArea>
                     
                     {/* tactics column */}
-                    <SortStartColumn name={'Tactics'} leftSide={false}>
+                    <SortStartColumn name="Tactics" leftSide={false}>
                         {
                             tactics.map((tactic)=>{
                                 return(
-                                    <Tactic key={tactic.unitData.listKey} tacticData={tactic.unitData} dragData={tactic.dragData} />
+                                    <Tactic key={tactic.unitData.listKey} unitData={tactic.unitData} dragData={tactic.dragData} />
                                 );
                             })
                         }
@@ -93,7 +94,6 @@ export default function Matching(){
         const delta = event.delta;
         const activeId = event.active.id as number;
         const isGoal = event.active.data.current?.isGoal;
-
         console.log("Collisions:", collisions,"\n Over:", event.over);
 
 
