@@ -22,12 +22,12 @@ export async function getGoalsAndTasks(){
     // } 
     return {
         'tactics':JSON.stringify(
-            [{'listKey':1,'name':'Striking'},
-                {'listKey':2, 'name':'Talking to your Representatives'}]
+            [{'listKey':0,'name':'Striking'},
+                {'listKey':1, 'name':'Talking to your Representatives'}]
         ),
         'goals':JSON.stringify(
-            [{'listKey':1,'name':'Improved Public Transportation'},
-                {'listKey':2, 'name':'Raise Minimum Wage'}]
+            [{'listKey':0,'name':'Improved Public Transportation'},
+                {'listKey':1, 'name':'Raise Minimum Wage'}]
         )
 
         // goals:{ goals: [{goal1}, {goal2}] },

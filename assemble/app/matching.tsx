@@ -1,6 +1,6 @@
 'use client'
 
-import { DndContext, DragEndEvent, pointerWithin, rectIntersection, Active, ClientRect, DroppableContainer } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, pointerWithin, rectIntersection, Active, ClientRect, DroppableContainer, UniqueIdentifier } from "@dnd-kit/core";
 import {restrictToWindowEdges} from '@dnd-kit/modifiers';
 import { useEffect, useState } from "react";
 import { RectMap } from "@dnd-kit/core/dist/store";
@@ -13,23 +13,26 @@ import SortStartColumn from "./sortStartColumn";
 
 import { MatchData, GoalData, TacticData, MatchableProps } from "./helperTs/sharedTypes";
 import { getGoalsAndTasks } from "./helperTs/serverCalls";
+import Matchable from "./keyElements/matchable";
+import Match from "./keyElements/match";
 
 export default function Matching(){
 
-    const [goals,setGoals] = useState<MatchableProps[]>([]);
-    const [tactics,setTactics] = useState<MatchableProps[]>([]);
-    const [matches,setMatches] = useState<MatchData[]>([]);
+    const [goals,setGoals] = useState<MatchableProps<GoalData>[]>([]);
+    const [tactics,setTactics] = useState<MatchableProps<TacticData>[]>([]);
+    const [matches,setMatches] = useState<MatchableProps<MatchData>[]>([]);
+    
 
     useEffect(()=>{
         getGoalsAndTasks().then((data)=>{
             const tacticData: TacticData[] = JSON.parse(data.tactics);
             const goalData :GoalData[] = JSON.parse(data.goals);
             const goalCount = goalData.length;
-            const tacProps :MatchableProps[] = [];
-            const goalProps: MatchableProps[]= [];
+            const tacProps :MatchableProps<TacticData>[] = [];
+            const goalProps: MatchableProps<GoalData>[]= [];
             
             goalData.forEach(goal => {
-                const props :MatchableProps = {
+                const props :MatchableProps<GoalData> = {
                     'unitData':goal,
                     'dragData':{'id':goal.listKey, 'coords': {x:0, y:0}, inMiddle:false}
                 };
@@ -37,7 +40,7 @@ export default function Matching(){
             });
 
             tacticData.forEach(tac => {
-                const props :MatchableProps = {
+                const props :MatchableProps<TacticData> = {
                     'unitData':tac,
                     'dragData':{'id':tac.listKey+goalCount, coords:{x:0, y:0}, inMiddle:false}
                 };
@@ -71,7 +74,11 @@ export default function Matching(){
 
                     {/* Middle column */}
                     <MatchArea>
-                        
+                        {
+                            matches.map((match,index)=>{
+                                return (<Match key={index} unitData={match.unitData} dragData={match.dragData} />);
+                            })
+                        }
                     </MatchArea>
                     
                     {/* tactics column */}
@@ -92,48 +99,104 @@ export default function Matching(){
     function handleDragEnd(event:DragEndEvent){
         const collisions = event.collisions;
         const delta = event.delta;
-        const activeId = event.active.id as number;
+        const activeId = event.active.id;
         const isGoal = event.active.data.current?.isGoal;
+        const inMiddle = event.active.data.current?.inMiddle;
+
         console.log("Collisions:", collisions,"\n Over:", event.over);
 
-        /* 3 possible actions:
-            1) 
-            2)
-            3)
+        /* possible actions:
+            1) Move from side to middle
+            2) Move from middle to middle
+            3) Illegal move - return to previous position (do nothing)
+            4) Valid match
         */
+        //If there is at least one collision detected
+        if(event.over){
+            let overMiddle = false;
+            let dropZoneId:UniqueIdentifier | undefined;
 
+            collisions?.forEach(element => {
+                const extraData = element.data?.droppableContainer.data.current;
 
-        if(isGoal==null){
-            console.log("UH OH - isGoal = null");
-        }else{
-            console.log("Unit dragged")
-
-            const currentList = isGoal?goals:tactics;
-
-            const nextList = currentList.map((c)=>{
-                if(c.dragData.id==activeId){
-                    return({
-                        unitData:c.unitData,
-                        dragData: {
-                            ...c.dragData,
-                            coords: {
-                                x:c.dragData.coords.x+ delta.x,
-                                y:c.dragData.coords.y+delta.y
-                            }
-                        }
-                    });
-                }else{
-                    return c;
+                if(element.id==-1) overMiddle=true;
+                //If one element is goal and the other is tactic save match ID
+                else if (extraData.isGoal != isGoal && !dropZoneId){
+                    dropZoneId=element.id;
                 }
             });
-            const set = isGoal?setGoals:setTactics;
-            set(nextList);
+
+            console.log("overMiddle:",overMiddle,"\nmatchKey:",dropZoneId);
+
+            if(dropZoneId !== undefined){
+                console.log("Match made")
+                if(isGoal) {makeMatch(activeId,dropZoneId,false);}
+                else{
+                     makeMatch(dropZoneId,activeId,true);
+                     console.log("Goal = drop zone")
+                    }
+            
+            }else if(overMiddle){
+
+                const currentList = isGoal?goals:tactics;
+
+                const nextList = currentList.map((c)=>{
+                    if(c.dragData.id==activeId){
+                        return({
+                            unitData:c.unitData,
+                            dragData: {
+                                ...c.dragData,
+                                coords: {
+                                    x:c.dragData.coords.x+ delta.x,
+                                    y:c.dragData.coords.y+delta.y
+                                }
+                            }
+                        });
+                    }else{
+                        return c;
+                    }
+                });
+                const set = isGoal?setGoals:setTactics;
+                set(nextList);
+
+                if(inMiddle){
+                    //Middle to middle
+                }else{
+                    //Side to middle
+                }
+            }
+
         }
-    
+        //Otherwise illegal move, do nothing
 
     }
 
-    function makeMatch(goalId:number, tacticId:number){
+    function makeMatch(goalId:UniqueIdentifier, tacticId:UniqueIdentifier, goalDropZone:boolean){
+        const goalProps = goals.find(x=>x.dragData.id=goalId);
+        const tacProps = tactics.find(x=>x.dragData.id=tacticId);
+
+        
+        setGoals(goals.filter(x=> x.dragData.id !== goalId));
+        setTactics(tactics.filter(x=> x.dragData.id !== tacticId ));
+        
+        if(goalProps && tacProps){
+            const dropZone = goalDropZone ? goalProps : tacProps;
+
+            const match:MatchData = {goal: goalProps.unitData, tactic: tacProps.unitData,
+                name:`${goalProps.unitData.name} & ${tacProps.unitData.name}`,
+                listKey:matches.length};
+            const matchProps:MatchableProps<MatchData> = { 
+                unitData:match,
+                dragData:{
+                    ...dropZone.dragData,
+                    id: Date.now()
+                }
+             };
+    
+            setMatches([...matches, matchProps]);
+        }else{
+            console.log("No goal/tactic found with the supplied ID")
+        }
 
     }
 

@@ -7,13 +7,15 @@ import { DraggingData } from "../helperTs/sharedTypes";
 interface propType extends DraggingData{
     name: string,
     isGoal: boolean,
+    listKey:number,
     matched ?: boolean
 };
 
 export default function Matchable(props :propType){
-    const draggable = useDraggable({id: props.id, data : {isGoal:props.isGoal}});
+    const extraData = {isGoal:props.isGoal, listKey:props.listKey}
+    const draggable = useDraggable({id: props.id, data : extraData});
     const {setNodeRef} = useDroppable({id: props.id,
-                data: {isGoal:props.isGoal},
+                data: extraData,
                 disabled: (draggable.isDragging || props.matched) 
             });
     const combinedRef = useCombinedRefs(setNodeRef, draggable.setNodeRef);

@@ -1,3 +1,4 @@
+import { UniqueIdentifier } from "@dnd-kit/core";
 import { Coordinates } from "@dnd-kit/utilities";
 
 /* 
@@ -12,7 +13,7 @@ import { Coordinates } from "@dnd-kit/utilities";
 
 //VERY COUNTER-INTUITIVE - this is the props for the matchable.tsx component
 export interface DraggingData{
-    id: number; //Unique number across all draggables and droppables
+    id: UniqueIdentifier; //Unique number across all draggables and droppables
     coords: Coordinates
     inMiddle ?: boolean
 }
@@ -23,8 +24,8 @@ interface MatchableData{
     description?: string;
 };
 
-export interface MatchableProps{
-    unitData: MatchableData //Data specific to whatever type of matchable is being used
+export interface MatchableProps<UnitData extends MatchableData>{
+    unitData: UnitData; //Data specific to whatever type of matchable is being used
     dragData: DraggingData;
 }
 
