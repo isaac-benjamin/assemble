@@ -121,20 +121,16 @@ export default function Matching(){
 
                 if(element.id==-1) overMiddle=true;
                 //If one element is goal and the other is tactic save match ID
-                else if (extraData.isGoal != isGoal && !dropZoneId){
+                else if (extraData.isGoal != isGoal && dropZoneId ===undefined){
                     dropZoneId=element.id;
                 }
             });
 
-            console.log("overMiddle:",overMiddle,"\nmatchKey:",dropZoneId);
+            console.log("overMiddle:",overMiddle,"\ndropZoneId:",dropZoneId);
 
             if(dropZoneId !== undefined){
-                console.log("Match made")
-                if(isGoal) {makeMatch(activeId,dropZoneId,false);}
-                else{
-                     makeMatch(dropZoneId,activeId,true);
-                     console.log("Goal = drop zone")
-                    }
+                makeMatch(activeId,dropZoneId,!isGoal);
+                console.log("Match made");
             
             }else if(overMiddle){
 
@@ -172,19 +168,18 @@ export default function Matching(){
     }
 
     function makeMatch(goalId:UniqueIdentifier, tacticId:UniqueIdentifier, goalDropZone:boolean){
-        const goalProps = goals.find(x=>x.dragData.id=goalId);
-        const tacProps = tactics.find(x=>x.dragData.id=tacticId);
+        const goalProps = goals.find(x=>x.dragData.id== goalId);
+        const tacProps = tactics.find(x=>x.dragData.id== tacticId);
 
-        
-        setGoals(goals.filter(x=> x.dragData.id !== goalId));
-        setTactics(tactics.filter(x=> x.dragData.id !== tacticId ));
+        const nextGoals =goals.filter(x=> x.dragData.id !==  goalId);
+        const nextTact =tactics.filter(x=> x.dragData.id !==  tacticId );
         
         if(goalProps && tacProps){
-            const dropZone = goalDropZone ? goalProps : tacProps;
+            // const dropZone = goalDropZone ? goalProps : tacProps;
+            const dropZone = goalProps
 
             const match:MatchData = {goal: goalProps.unitData, tactic: tacProps.unitData,
-                name:`${goalProps.unitData.name} & ${tacProps.unitData.name}`,
-                listKey:matches.length};
+                name:`${goalProps.unitData.name} & ${tacProps.unitData.name}`, listKey:matches.length};
             const matchProps:MatchableProps<MatchData> = { 
                 unitData:match,
                 dragData:{
@@ -194,8 +189,16 @@ export default function Matching(){
              };
     
             setMatches([...matches, matchProps]);
+            setGoals(nextGoals);
+            setTactics(nextTact);
+
         }else{
-            console.log("No goal/tactic found with the supplied ID")
+            if(goalId === undefined){
+                console.log(`No goal with the supplied id ${goalId}`)
+            }
+            if(tacticId===undefined){
+                console.log(`No tactic with the supplied id ${tacticId}`)
+            }
         }
 
     }
